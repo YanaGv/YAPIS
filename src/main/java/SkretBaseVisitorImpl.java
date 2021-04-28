@@ -222,6 +222,10 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         for (int i = 1; i<ctx.PARAM().size();i++){
             functionNode.params.add(new ParamNode(ctx.PARAM(i).getText()));
         }
+        SkretParser.SubprogramContext sctx = ctx.subprogram();
+        SubprogramNode subprogram = visitSubprogram(sctx);
+        functionNode.statements = subprogram.statements;
+        functionNode.returnValue = subprogram.returnValue;
         return functionNode;
     }
 }
