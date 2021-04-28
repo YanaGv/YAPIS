@@ -7,7 +7,7 @@ PARAM: TYPE WS? ID;
 ID : [a-z]+ NUM* ELEMENT_POINTER?;             // match lower-case identifiers
 WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
 NUM: [0-9]+ ;
-TYPE: '['('element'|'list')']'|'[]';
+TYPE: '['('element'|'list'|'int'|'string'|'bool')']'|'[]';
 OP: '+'|'-'|'*'|'\\';
 ADD: 'add';
 DELETE: 'delete';
