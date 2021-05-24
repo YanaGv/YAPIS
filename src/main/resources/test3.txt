@@ -1,0 +1,26 @@
+main
+<
+    [element] elem;
+    in elem;
+    sum(elem);
+    return;
+>
+havefun [] sum([element] e)
+<
+    [element] i = e;
+    [element] sumValue = 0;
+
+    ? ( e <> 3)
+    <
+        _sumValue + i;
+        [int] u = 0;
+        [int] u2 = 10;
+        range u -> u2
+        <
+            _u + 2;
+        >;
+        _sumValue + u;
+    >;
+    out sumValue;
+    return;
+>

@@ -1,23 +1,44 @@
 import Node.*;
-import com.mysql.cj.x.protobuf.MysqlxExpr;
 import org.antlr.v4.runtime.tree.TerminalNode;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.stream.Collectors;
 
 public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
+    public Map<String, String> globals = new HashMap<>();
+
     public ProgramNode main = new ProgramNode();
+    FileWriter writer;
+    public StringBuilder javaCode = new StringBuilder("");
+
+    public SkretBaseVisitorImpl(String filename) throws IOException {
+        writer = new FileWriter(filename, false);
+    }
 
     @Override
     public Node visitProgram(SkretParser.ProgramContext ctx) {
-
+        javaCode.append("import java.util.Scanner; public class Main{");
         SkretParser.SubprogramContext sctx = ctx.subprogram();
         ProgramNode programNode = new ProgramNode();
-        programNode.statements = visitSubprogram(sctx).statements;
         programNode.functions = ctx.func()
                 .stream()
                 .map(this::visitFunc)
                 .collect(Collectors.toList());
+        javaCode.append("public static void main(String[] args){");
+        programNode.statements = visitSubprogram(sctx).statements;
+        javaCode.append("}");
         this.main = programNode;
+        javaCode.append("}");
+        try {
+            writer.append(javaCode);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return this.main;
     }
 
@@ -37,7 +58,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
 
     @Override
     public StatementNode visitStatement(SkretParser.StatementContext ctx) {
-        StatementNode statementNode = new StatementNode();
+        StatementNode statementNode = null;
         if (ctx.block() != null) {
             statementNode = visitBlock(ctx.block());
         } else if (ctx.io() != null) {
@@ -62,21 +83,29 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         } else if (ctx.if_block() != null) {
             blockNode = visitIf_block(ctx.if_block());
         }
+        javaCode.append("{");
         blockNode.statements = ctx.statement()
                 .stream()
                 .map(this::visitStatement)
                 .collect(Collectors.toList());
+        javaCode.append("}");
         return blockNode;
     }
 
     @Override
     public ForBlockNode visitFor_block(SkretParser.For_blockContext ctx) {
         ForBlockNode forBlockNode = new ForBlockNode();
+        javaCode.append("for(;");
         forBlockNode.fromParam = ctx.ID(0).getText();
+        javaCode.append(forBlockNode.fromParam + "<");
         if (ctx.ID(1) != null) {
             forBlockNode.toParam = ctx.ID(1).getText();
         } else if (ctx.NUM() != null) {
             forBlockNode.toParam = ctx.NUM().getText();
+        }
+        javaCode.append(forBlockNode.toParam + ";" + forBlockNode.fromParam + "++)");
+        if (!globals.containsKey(forBlockNode.toParam)) {
+            System.out.println("Переменная в range не объявлена:" + forBlockNode.toParam);
         }
         return forBlockNode;
     }
@@ -84,15 +113,23 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
     @Override
     public IfBlockNode visitIf_block(SkretParser.If_blockContext ctx) {
         IfBlockNode ifBlockNode = new IfBlockNode();
+        javaCode.append("if(");
         ifBlockNode.firstExp = visitMath_expression(ctx.math_expression(0));
+        javaCode.append(ifBlockNode.firstExp.toString());
         ifBlockNode.secondExp = visitMath_expression(ctx.math_expression(1));
         ifBlockNode.compareOp = ctx.COMPARE_OP().getText();
+        if (ifBlockNode.compareOp.equals("<>")) {
+            javaCode.append("!=");
+        } else
+            javaCode.append(ifBlockNode.compareOp);
+        javaCode.append(ifBlockNode.secondExp.toString());
+        javaCode.append(")");
         return new IfBlockNode();
     }
 
     @Override
     public MathExpressionNode visitMath_expression(SkretParser.Math_expressionContext ctx) {
-        MathExpressionNode mathExpressionNode = new MathExpressionNode();
+        MathExpressionNode mathExpressionNode = null;
         if (ctx.typeCast() != null) {
             mathExpressionNode = visitTypeCast(ctx.typeCast());
         } else if (ctx.inBrackets() != null) {
@@ -129,6 +166,9 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         HaveValueNode haveValueNode = new HaveValueNode();
         if (ctx.ID() != null) {
             haveValueNode.param = ctx.ID().getText();
+            if (!globals.containsKey(haveValueNode.param)) {
+                System.out.println("Переменная не объявлена:" + haveValueNode.param);
+            }
         } else if (ctx.NUM() != null) {
             haveValueNode.param = ctx.NUM().getText();
         }
@@ -140,6 +180,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         IoNode ioNode = new IoNode();
         ioNode.operator = ctx.STREAM_OP().getText();
         ioNode.mathExpression = visitMath_expression(ctx.math_expression());
+        javaCode.append(ioNode.toString());
         return ioNode;
     }
 
@@ -155,13 +196,18 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
                 varDefineNode.expression = visitList_special_define(ctx.list_special_define());
             }
         }
+        if (globals.containsKey(varDefineNode.id)) {
+            System.out.println("Переменная объявлена несколько раз:" + varDefineNode.id);
+        } else
+            globals.put(varDefineNode.id, varDefineNode.type);
+        javaCode.append(varDefineNode.toString());
         return varDefineNode;
     }
 
     @Override
     public ListSpecialDefineNode visitList_special_define(SkretParser.List_special_defineContext ctx) {
         ListSpecialDefineNode listSpecialDefineNode = new ListSpecialDefineNode();
-        for(TerminalNode n: ctx.NUM()){
+        for (TerminalNode n : ctx.NUM()) {
             listSpecialDefineNode.numbers.add(n.getText());
         }
         return listSpecialDefineNode;
@@ -173,18 +219,22 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         landingExpressionNode.id = ctx.ID().getText();
         landingExpressionNode.op = ctx.OP().getText();
         landingExpressionNode.mathExpression = visitMath_expression(ctx.math_expression());
+        javaCode.append(landingExpressionNode.toString());
         return landingExpressionNode;
     }
 
     @Override
     public VarActionNode visitVar_action(SkretParser.Var_actionContext ctx) {
-        VarActionNode varActionNode = new VarActionNode();
+        VarActionNode varActionNode = null;
         if (ctx.binary_expression() != null) {
             varActionNode = visitBinary_expression(ctx.binary_expression());
         } else if (ctx.var_reform() != null) {
             varActionNode = visitVar_reform(ctx.var_reform());
         }
         varActionNode.id = ctx.ID().getText();
+        if (!globals.containsKey(varActionNode.id)) {
+            System.out.println("Переменная не объявлена:" + varActionNode.id);
+        }
         return varActionNode;
     }
 
@@ -207,10 +257,15 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
     public FuncCallNode visitFunc_call(SkretParser.Func_callContext ctx) {
         FuncCallNode funcCallNode = new FuncCallNode();
         funcCallNode.id = ctx.ID().getText();
+
+        if (!globals.containsKey(funcCallNode.id)) {
+            System.out.println("Функция не объявлена:" + funcCallNode.id);
+        }
         funcCallNode.params = ctx.math_expression()
                 .stream()
                 .map(this::visitMath_expression)
                 .collect(Collectors.toList());
+        javaCode.append(funcCallNode.toString());
         return funcCallNode;
     }
 
@@ -219,9 +274,32 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         FunctionNode functionNode = new FunctionNode();
         functionNode.type = ctx.PARAM(0).getText().split(" ")[0];
         functionNode.id = ctx.PARAM(0).getText().split(" ")[1];
-        for (int i = 1; i<ctx.PARAM().size();i++){
-            functionNode.params.add(new ParamNode(ctx.PARAM(i).getText()));
+        for (int i = 1; i < ctx.PARAM().size(); i++) {
+            ParamNode paramNode = new ParamNode(ctx.PARAM(i).getText());
+            functionNode.params.add(paramNode);
+            globals.put(paramNode.id, paramNode.type);
         }
+        if (globals.containsKey(functionNode.id)) {
+            System.out.println("Функция объявлена несколько раз:" + functionNode.id);
+        } else
+            globals.put(functionNode.id, functionNode.type);
+        javaCode.append(functionNode.toString());
+        javaCode.append("{");
+        SkretParser.SubprogramContext sctx = ctx.subprogram();
+        SubprogramNode subprogram = visitSubprogram(sctx);
+        functionNode.statements = subprogram.statements;
+        functionNode.returnValue = subprogram.returnValue;
+        if (functionNode.returnValue != null) {
+            if (!globals.get(functionNode.returnValue).equals(functionNode.type)) {
+                System.out.println("Возвращаемое значение не соответсвует типу функции:" + functionNode.type);
+            }
+        } else if (!functionNode.type.equals("[]")) {
+            System.out.println("Функция не должна возвращать значение:" + functionNode.id);
+        }
+        if (!functionNode.type.equals("[]")) {
+            javaCode.append("return " + functionNode.returnValue + ";");
+        }
+        javaCode.append("}");
         return functionNode;
     }
 }
