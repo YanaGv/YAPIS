@@ -1,37 +1,16 @@
 main
 <
-    [element] e = 1+a-v+(a+d)-(([element])l+1);
-    [list] set1 = {1 2 3 4};
-    [element] s;
-    set1 add e;
-
-    [element] e2 = set1.4;
-    set1 delete e.2;
-
-    out set1;
-    out set2;
-    in e;
-
-    [list] set3 = set1 + set2;
-    _set3 - set2;
-    show(e);
-    return;
->
-
-havefun [] show([element] e)
-<
-    out e;
-    return;
->
-
-havefun [element] sum([list] s, [element] e)
-<
-    [element] i = ([element])5+10;
-    [element] sum = 0;
-
-    ? ( i <> s.00)
+    [list] list = {1 2 33 4 5};
+    [int] i = 5;
+    range i -> 10
     <
-        _sum + s.0;
+        show(i);
     >;
-    return sum;
+    return;
+>
+
+havefun [] show([int] s)
+<
+    out s;
+    return;
 >

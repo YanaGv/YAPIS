@@ -1,0 +1,28 @@
+main
+<
+    [list] list = {1 2 33 4 5};
+    [int] i = 5;
+    range i -> 10
+    <
+        print();
+    >;
+    return;
+>
+havefun [] sum()
+<
+    [boolean] k;
+    return;
+>
+havefun [] show()
+<
+    sum();
+    return;
+>
+havefun [] print()
+<
+    show();
+    return;
+>
+
+
+
