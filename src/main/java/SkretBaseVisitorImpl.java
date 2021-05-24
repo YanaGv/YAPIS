@@ -1,5 +1,4 @@
 import Node.*;
-import com.mysql.cj.x.protobuf.MysqlxExpr;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.io.FileWriter;
@@ -15,6 +14,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
     public ProgramNode main = new ProgramNode();
     FileWriter writer;
     public StringBuilder javaCode = new StringBuilder("");
+
     public SkretBaseVisitorImpl(String filename) throws IOException {
         writer = new FileWriter(filename, false);
     }
@@ -24,7 +24,6 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         javaCode.append("import java.util.Scanner; public class Main{");
         SkretParser.SubprogramContext sctx = ctx.subprogram();
         ProgramNode programNode = new ProgramNode();
-        programNode.statements = visitSubprogram(sctx).statements;
         programNode.functions = ctx.func()
                 .stream()
                 .map(this::visitFunc)
