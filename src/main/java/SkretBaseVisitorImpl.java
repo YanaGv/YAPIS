@@ -2,9 +2,16 @@ import Node.*;
 import com.mysql.cj.x.protobuf.MysqlxExpr;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import java.util.stream.Collectors;
 
 public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
+    public Map<String, String> globals = new HashMap<>();
+
     public ProgramNode main = new ProgramNode();
     FileWriter writer;
     public StringBuilder javaCode = new StringBuilder("");
@@ -144,6 +151,9 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         HaveValueNode haveValueNode = new HaveValueNode();
         if (ctx.ID() != null) {
             haveValueNode.param = ctx.ID().getText();
+            if (!globals.containsKey(haveValueNode.param)) {
+                System.out.println("Переменная не объявлена:" + haveValueNode.param);
+            }
         } else if (ctx.NUM() != null) {
             haveValueNode.param = ctx.NUM().getText();
         }
@@ -170,6 +180,11 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
                 varDefineNode.expression = visitList_special_define(ctx.list_special_define());
             }
         }
+        if (globals.containsKey(varDefineNode.id)) {
+            System.out.println("Переменная объявлена несколько раз:" + varDefineNode.id);
+        } else
+            globals.put(varDefineNode.id, varDefineNode.type);
+        javaCode.append(varDefineNode.toString());
         return varDefineNode;
     }
 
@@ -200,6 +215,9 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
             varActionNode = visitVar_reform(ctx.var_reform());
         }
         varActionNode.id = ctx.ID().getText();
+        if (!globals.containsKey(varActionNode.id)) {
+            System.out.println("Переменная не объявлена:" + varActionNode.id);
+        }
         return varActionNode;
     }
 
@@ -222,6 +240,10 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
     public FuncCallNode visitFunc_call(SkretParser.Func_callContext ctx) {
         FuncCallNode funcCallNode = new FuncCallNode();
         funcCallNode.id = ctx.ID().getText();
+
+        if (!globals.containsKey(funcCallNode.id)) {
+            System.out.println("Функция не объявлена:" + funcCallNode.id);
+        }
         funcCallNode.params = ctx.math_expression()
                 .stream()
                 .map(this::visitMath_expression)
@@ -234,13 +256,26 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         FunctionNode functionNode = new FunctionNode();
         functionNode.type = ctx.PARAM(0).getText().split(" ")[0];
         functionNode.id = ctx.PARAM(0).getText().split(" ")[1];
-        for (int i = 1; i<ctx.PARAM().size();i++){
-            functionNode.params.add(new ParamNode(ctx.PARAM(i).getText()));
+        for (int i = 1; i < ctx.PARAM().size(); i++) {
+            ParamNode paramNode = new ParamNode(ctx.PARAM(i).getText());
+            functionNode.params.add(paramNode);
+            globals.put(paramNode.id, paramNode.type);
         }
+        if (globals.containsKey(functionNode.id)) {
+            System.out.println("Функция объявлена несколько раз:" + functionNode.id);
+        } else
+            globals.put(functionNode.id, functionNode.type);
         SkretParser.SubprogramContext sctx = ctx.subprogram();
         SubprogramNode subprogram = visitSubprogram(sctx);
         functionNode.statements = subprogram.statements;
         functionNode.returnValue = subprogram.returnValue;
+        if (functionNode.returnValue != null) {
+            if (!globals.get(functionNode.returnValue).equals(functionNode.type)) {
+                System.out.println("Возвращаемое значение не соответсвует типу функции:" + functionNode.type);
+            }
+        } else if (!functionNode.type.equals("[]")) {
+            System.out.println("Функция не должна возвращать значение:" + functionNode.id);
+        }
         return functionNode;
     }
 }
