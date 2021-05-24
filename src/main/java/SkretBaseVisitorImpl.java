@@ -84,31 +84,44 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         } else if (ctx.if_block() != null) {
             blockNode = visitIf_block(ctx.if_block());
         }
+        javaCode.append("{");
         blockNode.statements = ctx.statement()
                 .stream()
                 .map(this::visitStatement)
                 .collect(Collectors.toList());
+        javaCode.append("}");
         return blockNode;
     }
 
     @Override
     public ForBlockNode visitFor_block(SkretParser.For_blockContext ctx) {
         ForBlockNode forBlockNode = new ForBlockNode();
+        javaCode.append("for(;");
         forBlockNode.fromParam = ctx.ID(0).getText();
+        javaCode.append(forBlockNode.fromParam + "<");
         if (ctx.ID(1) != null) {
             forBlockNode.toParam = ctx.ID(1).getText();
         } else if (ctx.NUM() != null) {
             forBlockNode.toParam = ctx.NUM().getText();
         }
+        javaCode.append(forBlockNode.toParam + ";" + forBlockNode.fromParam + "++)");
         return forBlockNode;
     }
 
     @Override
     public IfBlockNode visitIf_block(SkretParser.If_blockContext ctx) {
         IfBlockNode ifBlockNode = new IfBlockNode();
+        javaCode.append("if(");
         ifBlockNode.firstExp = visitMath_expression(ctx.math_expression(0));
+        javaCode.append(ifBlockNode.firstExp.toString());
         ifBlockNode.secondExp = visitMath_expression(ctx.math_expression(1));
         ifBlockNode.compareOp = ctx.COMPARE_OP().getText();
+        if (ifBlockNode.compareOp.equals("<>")) {
+            javaCode.append("!=");
+        } else
+            javaCode.append(ifBlockNode.compareOp);
+        javaCode.append(ifBlockNode.secondExp.toString());
+        javaCode.append(")");
         return new IfBlockNode();
     }
 
