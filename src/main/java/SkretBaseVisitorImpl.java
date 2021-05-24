@@ -52,7 +52,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
 
     @Override
     public StatementNode visitStatement(SkretParser.StatementContext ctx) {
-        StatementNode statementNode = new StatementNode();
+        StatementNode statementNode = null;
         if (ctx.block() != null) {
             statementNode = visitBlock(ctx.block());
         } else if (ctx.io() != null) {
@@ -107,7 +107,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
 
     @Override
     public MathExpressionNode visitMath_expression(SkretParser.Math_expressionContext ctx) {
-        MathExpressionNode mathExpressionNode = new MathExpressionNode();
+        MathExpressionNode mathExpressionNode = null;
         if (ctx.typeCast() != null) {
             mathExpressionNode = visitTypeCast(ctx.typeCast());
         } else if (ctx.inBrackets() != null) {
@@ -176,7 +176,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
     @Override
     public ListSpecialDefineNode visitList_special_define(SkretParser.List_special_defineContext ctx) {
         ListSpecialDefineNode listSpecialDefineNode = new ListSpecialDefineNode();
-        for(TerminalNode n: ctx.NUM()){
+        for (TerminalNode n : ctx.NUM()) {
             listSpecialDefineNode.numbers.add(n.getText());
         }
         return listSpecialDefineNode;
@@ -193,7 +193,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
 
     @Override
     public VarActionNode visitVar_action(SkretParser.Var_actionContext ctx) {
-        VarActionNode varActionNode = new VarActionNode();
+        VarActionNode varActionNode = null;
         if (ctx.binary_expression() != null) {
             varActionNode = visitBinary_expression(ctx.binary_expression());
         } else if (ctx.var_reform() != null) {
