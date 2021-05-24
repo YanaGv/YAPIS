@@ -220,6 +220,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         landingExpressionNode.id = ctx.ID().getText();
         landingExpressionNode.op = ctx.OP().getText();
         landingExpressionNode.mathExpression = visitMath_expression(ctx.math_expression());
+        javaCode.append(landingExpressionNode.toString());
         return landingExpressionNode;
     }
 
@@ -265,6 +266,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
                 .stream()
                 .map(this::visitMath_expression)
                 .collect(Collectors.toList());
+        javaCode.append(funcCallNode.toString());
         return funcCallNode;
     }
 
