@@ -15,16 +15,16 @@ gList является OpenSource компилятором, который по�
 <br>
 
 <p align="center">
-<img width="400" src="https://github.com/YanaGv/YAPIS/blob/main/docs/test1.png?raw=true">
+<img width="500" src="https://github.com/YanaGv/YAPIS/blob/main/docs/test1.png?raw=true">
 <p align="center">test1</p>
 <br>
 <br>
 
 <p align="center">
-<img width="400" src="https://github.com/YanaGv/YAPIS/blob/main/docs/test2.png?raw=true">
+<img width="500" src="https://github.com/YanaGv/YAPIS/blob/main/docs/test2.png?raw=true">
 <p align="center">test2</p>
 <br>
 <br>
 <p align="center">
-<img width="400" src="https://github.com/YanaGv/YAPIS/blob/main/docs/test3.png?raw=true">
+<img width="500" src="https://github.com/YanaGv/YAPIS/blob/main/docs/test3.png?raw=true">
 <p align="center">test3</p>
