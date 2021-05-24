@@ -181,6 +181,7 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         IoNode ioNode = new IoNode();
         ioNode.operator = ctx.STREAM_OP().getText();
         ioNode.mathExpression = visitMath_expression(ctx.math_expression());
+        javaCode.append(ioNode.toString());
         return ioNode;
     }
 
