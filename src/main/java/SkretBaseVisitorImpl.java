@@ -6,10 +6,15 @@ import java.util.stream.Collectors;
 
 public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
     public ProgramNode main = new ProgramNode();
+    FileWriter writer;
+    public StringBuilder javaCode = new StringBuilder("");
+    public SkretBaseVisitorImpl(String filename) throws IOException {
+        writer = new FileWriter(filename, false);
+    }
 
     @Override
     public Node visitProgram(SkretParser.ProgramContext ctx) {
-
+        javaCode.append("import java.util.Scanner; public class Main{");
         SkretParser.SubprogramContext sctx = ctx.subprogram();
         ProgramNode programNode = new ProgramNode();
         programNode.statements = visitSubprogram(sctx).statements;
@@ -17,7 +22,17 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
                 .stream()
                 .map(this::visitFunc)
                 .collect(Collectors.toList());
+        javaCode.append("public static void main(String[] args){");
+        programNode.statements = visitSubprogram(sctx).statements;
+        javaCode.append("}");
         this.main = programNode;
+        javaCode.append("}");
+        try {
+            writer.append(javaCode);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return this.main;
     }
 
