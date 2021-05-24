@@ -284,6 +284,8 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
             System.out.println("Функция объявлена несколько раз:" + functionNode.id);
         } else
             globals.put(functionNode.id, functionNode.type);
+        javaCode.append(functionNode.toString());
+        javaCode.append("{");
         SkretParser.SubprogramContext sctx = ctx.subprogram();
         SubprogramNode subprogram = visitSubprogram(sctx);
         functionNode.statements = subprogram.statements;
@@ -295,6 +297,10 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
         } else if (!functionNode.type.equals("[]")) {
             System.out.println("Функция не должна возвращать значение:" + functionNode.id);
         }
+        if (!functionNode.type.equals("[]")) {
+            javaCode.append("return " + functionNode.returnValue + ";");
+        }
+        javaCode.append("}");
         return functionNode;
     }
 }
