@@ -5,15 +5,17 @@ program: 'main' subprogram func*;
 RETURN: ('return' WS ID)| 'return';
 FUNK: 'havefun';
 RANGE: 'range' ;
-ID : [a-zA-Z]+ NUM* ELEMENT_POINTER?;             // match lower-case identifiers
-PARAM: TYPE WS? ID;
-WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
-NUM: [0-9]+ ;
-TYPE: '['('element'|'list'|'int'|'string'|'boolean')']'|'[]';
 OP: '+'|'-'|'*'|'/';
 ADD: 'add';
 DELETE: 'delete';
+TYPE: '['('element'|'list'|'int'|'string'|'boolean')']'|'[]';
+STREAM_OP: (IN|OUT) WS;
+ELEMENT_POINTER: DOT NUM;
 BINARY_OP: WS (DELETE|ADD);
+WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
+NUM: [0-9]+ ;
+ID : [a-zA-Z]+ NUM* ELEMENT_POINTER?;             // match lower-case identifiers
+PARAM: TYPE WS? ID;
 COMPARE_OP: '=='|'<>'|'>'|'<';
 ASSIG: '=';
 LANDING: '_';
@@ -22,8 +24,6 @@ IF: '?';
 ELSE: 'else';
 IN: 'in';
 OUT: 'out';
-STREAM_OP: (IN|OUT) WS;
-ELEMENT_POINTER: DOT NUM;
 
 subprogram: '<' (statement)* RETURN ';' '>';
 func: FUNK PARAM '(' PARAM? (','PARAM)*')' subprogram;
