@@ -105,6 +105,9 @@ public class SkretBaseVisitorImpl extends SkretBaseVisitor<Node> {
             forBlockNode.toParam = ctx.NUM().getText();
         }
         javaCode.append(forBlockNode.toParam + ";" + forBlockNode.fromParam + "++)");
+        if (!globals.containsKey(forBlockNode.toParam)) {
+            System.out.println("Переменная в range не объявлена:" + forBlockNode.toParam);
+        }
         return forBlockNode;
     }
 
